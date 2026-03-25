@@ -1,13 +1,22 @@
 {
+  "version": 2,
   "builds": [
     {
       "src": "app.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
-      "src": "/(api/.*|save-order|orders|delete-orders)",
+      "src": "/save-order",
+      "dest": "app.py"
+    },
+    {
+      "src": "/orders",
       "dest": "app.py"
     },
     {
