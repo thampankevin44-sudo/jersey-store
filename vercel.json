@@ -16,10 +16,6 @@
       "dest": "app.py"
     },
     {
-      "src": "/orders",
-      "dest": "app.py"
-    },
-    {
       "src": "/(.*)",
       "dest": "/$1"
     }
