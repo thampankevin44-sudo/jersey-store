@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Checkout | Jersey Store</title>
+    <style>
+        body { font-family: sans-serif; background:#f8f9fa; padding: 20px; }
+        .cart-card { background:white; max-width: 600px; margin: auto; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .total-section { margin-top: 20px; font-size: 1.2em; font-weight: bold; text-align: right; }
+        select, button { width: 100%; padding: 15px; margin-top: 15px; border-radius: 8px; border: 1px solid #ddd; }
+        button { background: black; color: white; cursor: pointer; border: none; font-size: 16px; }
+        .empty-msg { text-align: center; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="cart-card">
+    <h2>Your Shopping Bag</h2>
+    <div id="cartItems"></div>
+    
+    <div id="checkoutControls" style="display:none;">
+        <div class="total-section">Total: ₹<span id="totalPrice">0</span></div>
+        <label>Payment Method:</label>
+        <select id="payment">
+            <option value="UPI">UPI</option>
+            <option value="COD">Cash on Delivery</option>
+            <option value="Card">Credit/Debit Card</option>
+        </select>
+        <button id="payBtn" onclick="checkout()">Place Order</button>
+    </div>
+</div>
+
+<script>
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const box = document.getElementById("cartItems");
+    const controls = document.getElementById("checkoutControls");
+    
+    if(cart.length === 0) {
+        box.innerHTML = "<p class='empty-msg'>Your cart is empty.</p><button onclick='window.location.href=\"index.html\"'>Go Shopping</button>";
+    } else {
+        controls.style.display = "block";
+        let total = 0;
+        cart.forEach((item, index) => {
+            total += item.price;
+            box.innerHTML += `
+                <div class="item-row">
+                    <span>${item.name}</span>
+                    <span>₹${item.price}</span>
+                </div>`;
+        });
+        document.getElementById("totalPrice").innerText = total;
+    }
+
+    function checkout() {
+    let method = document.getElementById("payment").value;
+    let total = document.getElementById("totalPrice").innerText;
+
+    // Show a loading state on the button
+    const payBtn = document.querySelector("button");
+    payBtn.innerText = "Processing...";
+    payBtn.disabled = true;
+
+    fetch("http://127.0.0.1:5000/save-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            items: cart,
+            payment: method,
+            total: total,
+            date: new Date().toLocaleString()
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message); // "Order Placed Successfully!"
+        localStorage.removeItem("cart"); // Clear cart after success
+        window.location.href = "index.html"; // Redirect to home
+    })
+    .catch(err => {
+        alert("⚠️ Connection failed. Is the Python server running?");
+        payBtn.innerText = "Pay";
+        payBtn.disabled = false;
+    });
+}
+</script>
+</body>
+</html>
